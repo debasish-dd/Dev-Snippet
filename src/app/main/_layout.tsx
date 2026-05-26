@@ -14,6 +14,7 @@ export default function MainLayout() {
           title: "New Snippet",
         }}
       />
+      <Stack.Screen name="snippets/[id]" options={{headerShown: false}} />
     </Stack>
   );
 }

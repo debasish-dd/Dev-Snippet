@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 import { Snippet }
-from "../types/snippet";
+  from "../types/snippet";
 
 import {
 
@@ -46,69 +46,69 @@ interface SnippetStore {
 
 
 export const useSnippetStore =
-create<SnippetStore>((set) => ({
-  snippets: [],
+  create<SnippetStore>((set) => ({
+    snippets: [],
 
-  loadSnippets: async () => {
+    loadSnippets: async () => {
 
-    const snippets =
-      await getAllSnippets();
+      const snippets =
+        await getAllSnippets();
 
-    set({ snippets });
+      set({ snippets });
 
-  },
+    },
 
-  addSnippet: async (
+    addSnippet: async (
 
-    title,
-
-    language,
-
-    code
-
-  ) => {
-
-    await createSnippet(
       title,
+
       language,
+
       code
-    );
 
-    const snippets =
-      await getAllSnippets();
+    ) => {
 
-    set({ snippets });
+      await createSnippet(
+        title,
+        language,
+        code
+      );
 
-  },
+      const snippets =
+        await getAllSnippets();
 
-  removeSnippet: async (
-    id
-  ) => {
+      set({ snippets });
 
-    await deleteSnippet(id);
+    },
 
-    const snippets =
-      await getAllSnippets();
+    removeSnippet: async (
+      id
+    ) => {
 
-    set({ snippets });
+      await deleteSnippet(id);
 
-  },
+      const snippets =
+        await getAllSnippets();
 
-  editSnippet: async (
-    id,
-    title
-  ) => {
+      set({ snippets });
 
-    await updateSnippet(
+    },
+
+    editSnippet: async (
       id,
       title
-    );
+    ) => {
 
-    const snippets =
-      await getAllSnippets();
+      await updateSnippet(
+        id,
+        title
+      );
 
-    set({ snippets });
+      const snippets =
+        await getAllSnippets();
 
-  },
+      set({ snippets });
 
-}));
+    },
+
+  }));
