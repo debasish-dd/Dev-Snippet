@@ -16,6 +16,7 @@ import { initDatabase } from "@/database/schema";
 import { useSnippetStore } from "@/stores/useSnippetStore";
 import { db } from "@/database/db";
 import { useRouter } from "expo-router";
+import SnippetCard from "@/components/SnippetCard";
 
 export default function Index() {
   const theme = useThemeStore((state) => state.theme);
@@ -64,40 +65,7 @@ export default function Index() {
               <TouchableOpacity
                 onPress={() => router.push(`/main/snippets/${item.id}`)}
               >
-                <View
-                  style={{
-                    backgroundColor: colors.card,
-                    padding: 12,
-                    borderRadius: 8,
-                    marginBottom: 12,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: colors.text,
-                      fontSize: 16,
-                      fontWeight: "600",
-                      marginBottom: 4,
-                    }}
-                  >
-                    {item.title} ({item.language})
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.text,
-                      fontSize: 14,
-                      marginBottom: 8,
-                    }}
-                    numberOfLines={2}
-                  >
-                    {item.code}
-                  </Text>
-                  <Button
-                    title="Delete"
-                    color={colors.primary}
-                    onPress={() => removeSnippet(item.id)}
-                  />
-                </View>
+               <SnippetCard item={item}/>
               </TouchableOpacity>
             )}
           />

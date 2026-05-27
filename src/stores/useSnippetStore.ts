@@ -39,7 +39,9 @@ interface SnippetStore {
 
   editSnippet: (
     id: number,
-    title: string
+    title: string,
+    language: string,
+    code: string
   ) => Promise<void>;
 }
 
@@ -96,12 +98,16 @@ export const useSnippetStore =
 
     editSnippet: async (
       id,
-      title
+      title,
+      language,
+      code
     ) => {
 
       await updateSnippet(
         id,
-        title
+        title,
+        language,
+        code
       );
 
       const snippets =

@@ -1,4 +1,5 @@
 import { db } from "@/database/db";
+import { useSnippetStore } from "@/stores/useSnippetStore";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { themes } from "@/themes/theme";
 import { Snippet } from "@/types/snippet";
@@ -11,6 +12,8 @@ import {
   Share,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,7 +24,17 @@ const DetailedSnippetScreen = () => {
   const theme = useThemeStore((state) => state.theme);
   const colors = themes[theme];
   const [data, setData] = useState<Snippet | null>(null);
-
+  const [isEditModeOn, setIsEditModeOn] = useState(false);
+  const [editableData, setEditableData] = useState<{
+    title: string | null;
+    language: string | null;
+    code: string | null;
+  }>({
+    title: null,
+    language: null,
+    code: null,
+  });
+  const editSnippet = useSnippetStore((state) => state.editSnippet);
   const getSnippetById = async (snippetId: number): Promise<void> => {
     const result = await db.getFirstAsync<Snippet>(
       `
@@ -34,12 +47,22 @@ const DetailedSnippetScreen = () => {
 
     setData(result ?? null);
   };
-
+  const removeSnippet = useSnippetStore((state)=>state.removeSnippet)
+  const route = useRouter();
   useEffect(() => {
     if (id) {
       getSnippetById(Number(id));
     }
-  }, [id]);
+  }, []);
+  useEffect(() => {
+    if (data) {
+      setEditableData({
+        title: data.title,
+        language: data.language,
+        code: data.code,
+      });
+    }
+  }, [data]);
 
   const handleCopy = async () => {
     try {
@@ -64,6 +87,22 @@ const DetailedSnippetScreen = () => {
     );
   }
 
+const handleEditConfirmation = async () => {
+  await editSnippet(
+    Number(id),
+    editableData.title ?? "",
+    editableData.language ?? "",
+    editableData.code ?? "",
+  );
+  await getSnippetById(Number(id)); 
+  setIsEditModeOn(false);
+};
+const handleDelete = async()=>{
+  await removeSnippet(Number(id));
+  route.replace("/main")
+
+}
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -71,9 +110,22 @@ const DetailedSnippetScreen = () => {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.headerCard, { backgroundColor: colors.card }]}>
           <View style={styles.titleRow}>
-            <Text style={[styles.title, { color: colors.text }]}>
-              {data.title}
-            </Text>
+            {isEditModeOn ? (
+              <TextInput
+                style={[styles.codeText, { color: colors.text }]}
+                value={editableData.title ?? ""}
+                autoFocus={true}
+                onChangeText={(text) =>
+                  setEditableData((prev) => ({ ...prev, title: text }))
+                }
+                multiline
+              />
+            ) : (
+              <Text style={[styles.title, { color: colors.text }]}>
+                {data.title}
+              </Text>
+            )}
+
             <Pressable
               style={({ pressed }) => [
                 styles.backButton,
@@ -96,9 +148,19 @@ const DetailedSnippetScreen = () => {
                 { backgroundColor: theme === "dark" ? "#2c2c2c" : "#e2e8f0" },
               ]}
             >
-              <Text style={[styles.chipText, { color: colors.text }]}>
-                {data.language}
-              </Text>
+              {isEditModeOn ? (
+                <TextInput
+                  style={[{ color: colors.text }]}
+                  value={editableData.language ?? ""}
+                  onChangeText={(text) =>
+                    setEditableData((prev) => ({ ...prev, language: text }))
+                  }
+                />
+              ) : (
+                <Text style={[styles.chipText, { color: colors.text }]}>
+                  {data.language}
+                </Text>
+              )}
             </View>
             <View
               style={[
@@ -135,16 +197,26 @@ const DetailedSnippetScreen = () => {
               onPress={handleCopy}
             >
               <Text style={[styles.copyButtonText, { color: colors.primary }]}>
-                Copy
+                Share
               </Text>
             </Pressable>
           </View>
-
-          <View style={styles.codeBlock}>
-            <Text style={[styles.codeText, { color: colors.text }]}>
-              {data.code}
-            </Text>
-          </View>
+          {isEditModeOn ? (
+            <TextInput
+              style={[styles.codeText, { color: colors.text }]}
+              value={editableData.code ?? ""}
+              onChangeText={(text) =>
+                setEditableData((prev) => ({ ...prev, code: text }))
+              }
+              multiline
+            />
+          ) : (
+            <View style={styles.codeBlock}>
+              <Text style={[styles.codeText, { color: colors.text }]}>
+                {data.code}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={[styles.footerCard, { backgroundColor: colors.card }]}>
@@ -176,6 +248,64 @@ const DetailedSnippetScreen = () => {
             </Text>
           </View>
         </View>
+        {isEditModeOn ? (
+          <View
+            style={{
+              margin: 10,
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => setIsEditModeOn(false)}
+              style={[
+                styles.endBtn,
+                { backgroundColor: "rgba(255,59,48,0.9)" },
+              ]}
+            >
+              <Text style={{ color: "white", fontWeight: "700", fontSize: 18 }}>
+                ✕
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleEditConfirmation}
+              style={[styles.endBtn, { backgroundColor: colors.primary }]}
+            >
+              <Text
+                style={{ color: colors.text, fontWeight: "700", fontSize: 18 }}
+              >
+                ✓
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View
+            style={{
+              margin: 10,
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
+            <Pressable 
+            onPress={handleDelete}
+            style={[styles.endBtn, { backgroundColor: "red" }]}>
+              <Text
+                style={{
+                  color: "white",
+                  fontWeight: "700",
+                }}
+              >
+                Delete
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setIsEditModeOn(true)}
+              style={[styles.endBtn, { backgroundColor: colors.primary }]}
+            >
+              <Text style={{ color: colors.text }}>Edit</Text>
+            </Pressable>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -326,5 +456,13 @@ const styles = StyleSheet.create({
   detailValue: {
     fontSize: 14,
     fontWeight: "700",
+  },
+  endBtn: {
+    height: 50,
+    width: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
+    elevation: 5,
   },
 });
