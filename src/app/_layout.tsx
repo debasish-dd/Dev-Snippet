@@ -11,7 +11,7 @@ export default function RootLayout() {
       />
 
       <Drawer.Screen
-        name="profile"
+        name="ProfileScreen"
         options={{
           title: "Profile",
         }}

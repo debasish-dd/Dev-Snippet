@@ -13,7 +13,7 @@ export const initDatabase = async () => {
       language TEXT,
 
       code TEXT NOT NULL,
-
+      is_bookmarked INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
 
     );

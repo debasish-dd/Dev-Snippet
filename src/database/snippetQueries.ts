@@ -66,3 +66,45 @@ export const deleteSnippet = async (id: number) => {
     [id],
   );
 };
+
+export const toggleBookmark =
+async (
+  id: number,
+  currentValue: number
+) => {
+
+  await db.runAsync(
+
+    `
+    UPDATE snippets
+    SET is_bookmarked = ?
+    WHERE id = ?
+    `,
+
+    [
+      currentValue ? 0 : 1,
+      id
+    ]
+
+  );
+  
+};
+
+export const getBookmarkedSnippets =
+async (): Promise<Snippet[]> => {
+
+  const result =
+    await db.getAllAsync<Snippet>(
+
+      `
+      SELECT *
+      FROM snippets
+      WHERE is_bookmarked = 1
+      ORDER BY created_at DESC
+      `
+
+    );
+
+  return result;
+
+};

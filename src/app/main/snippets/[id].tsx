@@ -47,7 +47,10 @@ const DetailedSnippetScreen = () => {
 
     setData(result ?? null);
   };
-  const removeSnippet = useSnippetStore((state)=>state.removeSnippet)
+  const removeSnippet = useSnippetStore((state) => state.removeSnippet);
+  const toggleSnippetBookmark = useSnippetStore(
+    (state) => state.toggleSnippetBookmark,
+  );
   const route = useRouter();
   useEffect(() => {
     if (id) {
@@ -63,6 +66,12 @@ const DetailedSnippetScreen = () => {
       });
     }
   }, [data]);
+
+  const handleToggleBookmark = async () => {
+    if (!data) return;
+    await toggleSnippetBookmark(Number(id), data.is_bookmarked);
+    await getSnippetById(Number(id));  
+  };
 
   const handleCopy = async () => {
     try {
@@ -87,21 +96,20 @@ const DetailedSnippetScreen = () => {
     );
   }
 
-const handleEditConfirmation = async () => {
-  await editSnippet(
-    Number(id),
-    editableData.title ?? "",
-    editableData.language ?? "",
-    editableData.code ?? "",
-  );
-  await getSnippetById(Number(id)); 
-  setIsEditModeOn(false);
-};
-const handleDelete = async()=>{
-  await removeSnippet(Number(id));
-  route.replace("/main")
-
-}
+  const handleEditConfirmation = async () => {
+    await editSnippet(
+      Number(id),
+      editableData.title ?? "",
+      editableData.language ?? "",
+      editableData.code ?? "",
+    );
+    await getSnippetById(Number(id));
+    setIsEditModeOn(false);
+  };
+  const handleDelete = async () => {
+    await removeSnippet(Number(id));
+    route.replace("/main");
+  };
 
   return (
     <SafeAreaView
@@ -126,15 +134,17 @@ const handleDelete = async()=>{
               </Text>
             )}
 
-            <Pressable
-              style={({ pressed }) => [
-                styles.backButton,
-                pressed && { opacity: 0.8 },
-              ]}
-              onPress={() => router.back()}
-            >
-              <Text style={styles.backText}>Back</Text>
-            </Pressable>
+            <View style={styles.headerButtonGroup}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.backButton,
+                  pressed && { opacity: 0.8 },
+                ]}
+                onPress={() => router.back()}
+              >
+                <Text style={styles.backText}>Back</Text>
+              </Pressable>
+            </View>
           </View>
 
           <Text style={[styles.subtitle, { color: colors.text }]}>
@@ -182,6 +192,22 @@ const handleDelete = async()=>{
                 {data.code.length} chars
               </Text>
             </View>
+            <Pressable
+              style={({ pressed }) => [
+                styles.iconButton,
+                pressed && { opacity: 0.8 },
+              ]}
+              onPress={handleToggleBookmark}
+            >
+              <Text
+                style={{
+                  fontSize: 20,
+                  color: data.is_bookmarked ? colors.primary : colors.text,
+                }}
+              >
+                {data.is_bookmarked ? "🔖" : "📑"}
+              </Text>
+            </Pressable>
           </View>
         </View>
 
@@ -286,9 +312,10 @@ const handleDelete = async()=>{
               justifyContent: "space-between",
             }}
           >
-            <Pressable 
-            onPress={handleDelete}
-            style={[styles.endBtn, { backgroundColor: "red" }]}>
+            <Pressable
+              onPress={handleDelete}
+              style={[styles.endBtn, { backgroundColor: "red" }]}
+            >
               <Text
                 style={{
                   color: "white",
@@ -359,6 +386,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(0,0,0,0.12)",
     backgroundColor: "rgba(255,255,255,0.08)",
+  },
+  headerButtonGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconButton: {
+    borderRadius: 999,
+    padding: 10,
+    marginRight: 10,
+    backgroundColor: "rgba(255,255,255,0.06)",
   },
   backText: {
     fontSize: 13,

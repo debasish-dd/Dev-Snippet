@@ -11,7 +11,9 @@ import {
 
   deleteSnippet,
 
-  updateSnippet
+  updateSnippet,
+  toggleBookmark,
+  getBookmarkedSnippets
 
 } from "../database/snippetQueries";
 
@@ -43,6 +45,15 @@ interface SnippetStore {
     language: string,
     code: string
   ) => Promise<void>;
+
+  toggleSnippetBookmark: (
+    id: number,
+    currentValue: number
+  ) => Promise<void>;
+  bookmarkedSnippets: Snippet[];
+
+  loadBookmarkedSnippets:
+  () => Promise<void>;
 }
 
 
@@ -117,4 +128,30 @@ export const useSnippetStore =
 
     },
 
+    toggleSnippetBookmark: async (id, currentValue) => {
+      await toggleBookmark(id, currentValue);
+
+      const [snippets, bookmarkedSnippets] = await Promise.all([
+        getAllSnippets(),
+        getBookmarkedSnippets(),
+      ]);
+
+      set({ snippets, bookmarkedSnippets });
+    },
+
+    bookmarkedSnippets: [],
+
+
+
+    loadBookmarkedSnippets:
+      async () => {
+
+        const snippets =
+          await getBookmarkedSnippets();
+
+        set({
+          bookmarkedSnippets: snippets
+        });
+
+      },
   }));
